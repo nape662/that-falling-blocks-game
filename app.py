@@ -1,6 +1,7 @@
 
-import constants
+from constants import *
 import pygame as pg
+
 
 class App:
     def __init__(self, width, height):
