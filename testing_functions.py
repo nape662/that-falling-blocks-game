@@ -6,17 +6,15 @@ print(a[1])
 print(b)
 print(c[1])
 
-def rooty():
+def rooty(n, att):
     res = 0
-    for i in range(10, 101):
-        k = i
-        print("{} = i".format(i))
-        for j in range(i-9, i):
-            print(j, end = " ")
+    for i in range(att, 101):
+        k = i / 100 * att
+        for j in range(i+1-att, i):
             k *= j/(100-(i-j))
-        print(k)
         res += k
     print(res)
 
-rooty()
+for i in range(1, 11):
+    rooty(100, i)
 
