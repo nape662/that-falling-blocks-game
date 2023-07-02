@@ -1,11 +1,14 @@
 import pygame as pg
 from random import randint
 
+FPS = 60
 
-WINDOW_WIDTH = 600
+WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 800
 WIDTH = 10
 HEIGHT = 20
+CELL_WIDTH = WINDOW_WIDTH // WIDTH
+CELL_HEIGHT = WINDOW_HEIGHT // HEIGHT
 
 GREEN = (125, 179, 73)
 RED = (242, 26, 29)
@@ -13,6 +16,7 @@ BLUE = (69, 42, 233)
 LIGHT_BLUE = (101, 197, 253)
 YELLOW = (255, 227, 4)
 PURPLE = (174, 56, 255)
+BLACK = (0, 0, 0)
 COLOUR_LIST = [GREEN, RED, BLUE, LIGHT_BLUE, YELLOW, PURPLE]
 
 # tetriminos
@@ -59,14 +63,16 @@ SHAPES = [
          '.OO..',
          '.....'],
         ['.....',
-         '.....',
-         '.OO..',
-         '..OO.',
-         '.....'],
-        ['.....',
          '.O...',
          '.OO..',
          '..O..',
+         '.....']
+    ],
+    [
+        ['.....',
+         '.....',
+         '.OO..',
+         '..OO.',
          '.....'],
         ['.....',
          '..O..',
@@ -94,6 +100,28 @@ SHAPES = [
          '.....',
          '.OOO.',
          '.O...',
+         '.....']
+    ],
+    [
+        ['.....',
+         '..O..',
+         '..O.',
+         '.OO..',
+         '.....'],
+        ['.....',
+         '.O...',
+         '.OOO.',
+         '.....',
+         '.....'],
+        ['.....',
+         '..OO.',
+         '..O..',
+         '..O..',
+         '.....'],
+        ['.....',
+         '.....',
+         '.OOO.',
+         '...O.',
          '.....']
     ],
 ]

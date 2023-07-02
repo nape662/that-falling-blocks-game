@@ -6,6 +6,7 @@ print(a[1])
 print(b)
 print(c[1])
 
+
 def rooty(n, att):
     res = 0
     for i in range(att, 101):
@@ -15,6 +16,6 @@ def rooty(n, att):
         res += k
     print(res)
 
+
 for i in range(1, 11):
     rooty(100, i)
-
