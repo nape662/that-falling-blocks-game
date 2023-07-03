@@ -8,15 +8,17 @@ def cell_coordinates(x, y):
     return CELL_WIDTH*x, CELL_HEIGHT*y
 
 
+def cell_rect(x, y):
+    return CELL_WIDTH*x, CELL_HEIGHT*y, CELL_WIDTH, CELL_HEIGHT
+
+
 class App:
     def __init__(self):
         self.running = False
         pg.init()
         pg.display.set_caption("Tetris")
         self.screen = pg.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
-        self.surfaces = [[pg.Surface((CELL_WIDTH, CELL_HEIGHT)) for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.grid = self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
-        # TODO: improve surfaces / grid interaction, may be in a single class/structure
         self.score = 0
         self.moving_piece = Tetromino(self)
 
@@ -25,8 +27,10 @@ class App:
             for j, cell in enumerate(row):
                 try:
                     if cell == "O":
-                        if self.grid[self.moving_piece.y+delta_y+i][self.moving_piece.x+delta_x+j] != 0 or \
-                                    self.moving_piece.y+delta_y+i >= HEIGHT or self.moving_piece.x+delta_x+j < 0:
+                        used_y = self.moving_piece.y+delta_y+i
+                        used_x = self.moving_piece.x+delta_x+j
+                        if self.grid[used_y][used_x] != 0 or \
+                                used_y >= HEIGHT or used_x < 0:
                             return False  # doesn't even check for grid pos if "." and doesn't give Error
                 except IndexError:
                     return False
@@ -42,8 +46,10 @@ class App:
             self.fix_piece()
 
     def hard_drop(self):
-        while self.move_is_possible(0, 1, 0):  # badly optimised but works without rewriting draw_piece
-            self.move_piece(0, 1, 0)
+        drop_height = 0
+        while self.move_is_possible(0, drop_height, 0):
+            drop_height += 1
+        self.move_piece(0, drop_height - 1, 0)
         self.fix_piece()
 
     def fix_piece(self):
@@ -53,7 +59,7 @@ class App:
                     self.grid[self.moving_piece.y+i][self.moving_piece.x+j] = self.moving_piece.colour
         self.moving_piece = Tetromino(self)
         self.clear_lines()
-        # check if we lost game
+        # TODO check if we lost game
 
     def clear_lines(self):
         for i, row in enumerate(self.grid):
@@ -63,32 +69,23 @@ class App:
                     self.grid[k] = self.grid[k-1]
                     for num, cell in enumerate(self.grid[k]):
                         if cell != 0:
-                            self.surfaces[k][num].fill(cell)
+                            self.screen.fill(cell, cell_rect(k, num))
+                            #  self.surfaces[k][num].fill(cell)
                         else:
-                            self.surfaces[k][num].fill(BLACK)
-                        self.screen.blit(self.surfaces[k][num], cell_coordinates(num, k))
+                            self.screen.fill(BLACK, cell_rect(k, num))
 
     def draw_piece(self):
-        # optimisation: only OOOO tetrimino fucks "only redraw shape" system up in exactly one cell
-        try:
-            if self.grid[self.moving_piece.y + 3][self.moving_piece.x - 1] == 0:
-                self.surfaces[self.moving_piece.y + 3][self.moving_piece.x - 1].fill(BLACK)
-                self.screen.blit(self.surfaces[self.moving_piece.y + 3][self.moving_piece.x - 1],
-                                 dest=cell_coordinates((self.moving_piece.x - 1),
-                                      (self.moving_piece.y + 3)))
-        except IndexError:
-            pass
-        # here actual shape blit
+        for i, row in enumerate(self.grid):  # here a little ineffective may be
+            for j, cell in enumerate(row):
+                if cell == 0:
+                    self.screen.fill(BLACK, cell_rect(j, i))
         for i, row in enumerate(self.moving_piece.rotated_shape()):
             for j, cell in enumerate(row):
                 try:
-                    current_surface = self.surfaces[self.moving_piece.y + i][self.moving_piece.x + j]
+                    used_x = self.moving_piece.x+j
+                    used_y = self.moving_piece.y+i
                     if cell == "O":
-                        current_surface.fill(self.moving_piece.colour)
-                    elif self.grid[self.moving_piece.y+i][self.moving_piece.x+j] == 0:
-                        current_surface.fill(BLACK)
-                    self.screen.blit(current_surface, dest=cell_coordinates((self.moving_piece.x + j),
-                                                           (self.moving_piece.y + i)))
+                        self.screen.fill(self.moving_piece.colour, cell_rect(used_x, used_y))
                 except IndexError:
                     pass
 
