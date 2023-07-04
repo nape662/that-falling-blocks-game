@@ -16,8 +16,10 @@ BLUE = (69, 42, 233)
 LIGHT_BLUE = (101, 197, 253)
 YELLOW = (255, 227, 4)
 PURPLE = (174, 56, 255)
+ORANGE = (255, 173, 0)
 BLACK = (0, 0, 0)
-COLOUR_LIST = [GREEN, RED, BLUE, LIGHT_BLUE, YELLOW, PURPLE]
+
+COLOUR_LIST = [LIGHT_BLUE, YELLOW, PURPLE, GREEN, RED, ORANGE, BLUE]
 
 # tetriminos
 SHAPES = [
@@ -43,6 +45,12 @@ SHAPES = [
          '.O...',
          '.O...']
 
+    ],
+    [
+        ['..',
+         'OO',
+         'OO',
+         ]
     ],
     [
         ['.....',

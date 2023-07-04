@@ -62,7 +62,7 @@ class App:
         if (rotated == 0 and not (self.move_is_possible(0, 1, 0)
                                   or self.move_is_possible(1, 0, 0)
                                   or self.move_is_possible(-1, 0, 0))) or hard_drop:
-            self.fix_piece()
+            self.fix_piece()  # TODO: edit this after timer implementation
 
     def hard_drop(self):
         self.move_piece(0, self.max_drop_height(), 0, True)
@@ -77,15 +77,16 @@ class App:
 
     def clear_lines(self):
         for i, row in enumerate(self.grid):
-            if 0 not in row:
-                self.score += 100  # TODO better scoring system
-                for k in range(i, 0, -1):
-                    self.grid[k] = self.grid[k - 1]
-                    for num, cell in enumerate(self.grid[k]):
-                        if cell != 0:
-                            self.screen.fill(cell, cell_rect(k, num))
-                        else:
-                            self.screen.fill(BLACK, cell_rect(k, num))
+            if all(cell != 0 for cell in row):
+                self.score += 100  # TODO look official Tetris scoring system
+                del(self.grid[i])
+                self.grid.insert(0, [0 for _ in range(WIDTH)])
+        for k, updated_row in enumerate(self.grid):
+            for num, cell in enumerate(updated_row):
+                if cell != 0:
+                    self.screen.fill(cell, cell_rect(num, k))
+                else:
+                    self.screen.fill(BLACK, cell_rect(num, k))
 
     def draw_piece(self):
         for i, row in enumerate(self.grid):  # here a little ineffective may be
@@ -103,7 +104,6 @@ class App:
                         self.screen.fill(self.moving_piece.colour, cell_rect(cell_x, cell_y))
                 except IndexError:
                     pass
-
 
     def draw_game(self):
         self.draw_piece()
