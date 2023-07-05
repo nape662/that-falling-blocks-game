@@ -5,11 +5,6 @@ import pygame as pg
 
 # imports are already in constants.py
 
-
-def cell_coordinates(x, y):
-    return CELL_WIDTH * x, CELL_HEIGHT * y
-
-
 def cell_rect(x, y):
     return CELL_WIDTH * x, CELL_HEIGHT * y, CELL_WIDTH, CELL_HEIGHT
 
@@ -22,6 +17,7 @@ class App:
         self.screen = pg.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
         self.grid = self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.score = 0
+        self.next_pieces = [Tetromino(self) for _ in range(3)]
         self.moving_piece = Tetromino(self)
 
     def max_drop_height(self):
@@ -64,6 +60,8 @@ class App:
                                   or self.move_is_possible(-1, 0, 0))) or hard_drop:
             self.fix_piece()  # TODO: edit this after timer implementation
 
+
+
     def hard_drop(self):
         self.move_piece(0, self.max_drop_height(), 0, True)
 
@@ -73,7 +71,20 @@ class App:
                 if cell == "O":
                     self.grid[self.moving_piece.y + i][self.moving_piece.x + j] = self.moving_piece.colour
         self.clear_lines()
-        self.moving_piece = Tetromino(self)
+        self.moving_piece = self.next_pieces.pop(0)
+        self.next_pieces.append(Tetromino(self))
+        self.draw_next_pieces()
+
+    def draw_next_pieces(self):
+        # make other cells on the right of the grid black
+        #for i in range(3):
+        #    for j in range(4):
+        #        self.screen.fill(BLACK, cell_rect(13 + j, 2 + 4 * i))
+        for i, piece in enumerate(self.next_pieces):
+            for j, row in enumerate(piece.rotated_shape()):
+                for k, cell in enumerate(row):
+                    if cell == "O":
+                        self.screen.fill(piece.colour, cell_rect(13 + k, 2 + 4 * i + j))
 
     def clear_lines(self):
         for i, row in enumerate(self.grid):
@@ -87,6 +98,8 @@ class App:
                     self.screen.fill(cell, cell_rect(num, k))
                 else:
                     self.screen.fill(BLACK, cell_rect(num, k))
+
+    #  q: how do I make you suggest improvements on existing function?
 
     def draw_piece(self):
         for i, row in enumerate(self.grid):  # here a little ineffective may be

@@ -1,6 +1,8 @@
 from constants import *
 
 
+
+
 class Tetromino:
     def __init__(self, app):
         shape_number = randint(0, len(SHAPES) - 1)
