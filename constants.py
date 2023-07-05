@@ -1,5 +1,5 @@
 import pygame as pg
-from random import randint
+from random import randint, choice
 
 FPS = 60
 
@@ -15,18 +15,30 @@ WINDOW_HEIGHT = 800
 
 GREEN = (125, 179, 73)
 RED = (242, 26, 29)
-BLUE = (69, 42, 233)
+BLUE = (0, 57, 255)
 LIGHT_BLUE = (101, 197, 253)
 YELLOW = (255, 227, 4)
 PURPLE = (174, 56, 255)
+LIGHT_PURPLE = (255, 75, 255)
 ORANGE = (255, 173, 0)
 BLACK = (0, 0, 0)
 
 COLOUR_LIST = [LIGHT_BLUE, YELLOW, PURPLE, GREEN, RED, ORANGE, BLUE]
+GHOST_COLOUR_LIST = [LIGHT_BLUE, YELLOW, LIGHT_PURPLE, GREEN, RED, ORANGE, BLUE]  # ghost colours are lighter
 
 # tetriminos
 SHAPES = [
     [
+        ['.....',
+         '.....',
+         'OOOO.',
+         '.....',
+         '.....'],
+        ['.....',
+         '.O...',
+         '.O...',
+         '.O...',
+         '.O...'],
         ['.....',
          '.....'
          '.....',
@@ -36,18 +48,7 @@ SHAPES = [
          '..O..',
          '..O..',
          '..O..',
-         '..O..'],
-        ['.....',
-         '.....',
-         'OOOO.',
-         '.....',
-         '.....'],
-        ['.....',
-         '.O...',
-         '.O...',
-         '.O...',
-         '.O...']
-
+         '..O..']
     ],
     [
         ['..',
@@ -59,36 +60,30 @@ SHAPES = [
         ['.....',
          '.....',
          '..O..',
-         '.OOO.',
-         '.....'],
+         '.OOO.'],
         ['.....',
          '..O..',
          '.OO..',
-         '..O..',
-         '.....'],
+         '..O..'],
         ['.....',
          '.....',
          '.OOO.',
-         '..O..',
-         '.....'],
+         '..O..'],
         ['.....',
          '..O..',
          '..OO.',
-         '..O..',
-         '.....']
+         '..O..']
     ],
     [
         [
          '.....',
          '.....',
          '..OO.',
-         '.OO..',
-         '.....'],
+         '.OO..'],
         ['.....',
          '.O...',
          '.OO..',
-         '..O..',
-         '.....']
+         '..O..']
     ],
     [
         ['.....',
@@ -148,3 +143,21 @@ SHAPES = [
     ],
 ]
 
+
+# shapes for display on the right, only first rotation of each shape and with less padding
+
+SHAPE_DISPLAYS = [
+    ['OOOO'],
+    ['.OO.',
+     '.OO.'],
+    ['..O..',
+     '.OOO.'],
+    ['..OO.',
+     '.OO.'],
+    ['.OO.',
+     '..OO.'],
+    ['...O.',
+     '.OOO.'],
+    ['.O...',
+     '.OOO.']
+]

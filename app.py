@@ -18,9 +18,12 @@ class App:
         self.screen = pg.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
         self.grid = self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.score = 0
-        self.next_pieces = [Tetromino(self) for _ in range(3)]
         self.moving_piece = Tetromino(self)
+        self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
+        self.next_pieces += [Tetromino(self, self.next_pieces[i-1].shape_number) for i in range(2)]
         self.draw_grid_lines()
+        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
+        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT*14, WINDOW_WIDTH-GRID_PIXEL_WIDTH, WINDOW_HEIGHT-CELL_HEIGHT*14))
 
     def max_drop_height(self):
         max_drop_height = 0
@@ -72,7 +75,7 @@ class App:
                     self.grid[self.moving_piece.y + i][self.moving_piece.x + j] = self.moving_piece.colour
         self.clear_lines()
         self.moving_piece = self.next_pieces.pop(0)
-        self.next_pieces.append(Tetromino(self))
+        self.next_pieces.append(Tetromino(self, self.next_pieces[-1].shape_number))
         # self.draw_next_pieces()
 
     def draw_grid_lines(self):
@@ -87,15 +90,12 @@ class App:
         self.screen.blit(self.grid_lines_surface, (0, 0))
 
     def draw_next_pieces(self):
-        # make other cells on the right of the grid black
-        #for i in range(3):
-        #    for j in range(4):
-        #        self.screen.fill(BLACK, cell_rect(13 + j, 2 + 4 * i))
+        self.screen.fill(BLACK, (GRID_PIXEL_WIDTH + CELL_WIDTH, 0, WINDOW_WIDTH - GRID_PIXEL_WIDTH - CELL_WIDTH, CELL_HEIGHT * 14))
         for i, piece in enumerate(self.next_pieces):
-            for j, row in enumerate(piece.rotated_shape()):
+            for j, row in enumerate(SHAPE_DISPLAYS[piece.shape_number]):
                 for k, cell in enumerate(row):
                     if cell == "O":
-                        self.screen.fill(piece.colour, cell_rect(13 + k, 2 + 4 * i + j))
+                        self.screen.fill(piece.colour, cell_rect(11 + k, 2 + 4 * i + j))
 
     def clear_lines(self):
         for i, row in enumerate(self.grid):
@@ -131,10 +131,11 @@ class App:
                     cell_y = self.moving_piece.y + i
                     ghost_y = self.moving_piece.y + i + self.max_drop_height()
                     if cell == "O":
-                        pg.draw.rect(self.screen, self.moving_piece.colour, cell_rect(cell_x, ghost_y), width=1)
+                        pg.draw.rect(self.screen, GHOST_COLOUR_LIST[self.moving_piece.shape_number], cell_rect(cell_x, ghost_y), width=1)
                         self.screen.fill(self.moving_piece.colour, cell_rect(cell_x, cell_y))
                 except IndexError:
                     pass
+        self.draw_next_pieces()
         pg.display.flip()
 
     def handle_inputs(self):
