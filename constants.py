@@ -3,14 +3,15 @@ from random import randint
 
 FPS = 60
 
-GRID_PIXEL_WIDTH = 400
-GRID_PIXEL_HEIGHT = 800
-WINDOW_WIDTH = 600
-WINDOW_HEIGHT = 800
 WIDTH = 10
 HEIGHT = 20
-CELL_WIDTH = GRID_PIXEL_WIDTH// WIDTH
+GRID_PIXEL_WIDTH = 400
+GRID_PIXEL_HEIGHT = 800
+CELL_WIDTH = GRID_PIXEL_WIDTH // WIDTH
 CELL_HEIGHT = GRID_PIXEL_HEIGHT // HEIGHT
+WINDOW_WIDTH = GRID_PIXEL_WIDTH + CELL_WIDTH * 6
+WINDOW_HEIGHT = 800
+
 
 GREEN = (125, 179, 73)
 RED = (242, 26, 29)
@@ -103,11 +104,6 @@ SHAPES = [
     ],
     [
         ['.....',
-         '..O..',
-         '..O.',
-         '..OO.',
-         '.....'],
-        ['.....',
          '...O.',
          '.OOO.',
          '.....',
@@ -121,15 +117,15 @@ SHAPES = [
          '.....',
          '.OOO.',
          '.O...',
+         '.....'],
+        ['.....',
+         '..O..',
+         '..O.',
+         '..OO.',
          '.....']
     ],
     [
         ['.....',
-         '..O..',
-         '..O.',
-         '.OO..',
-         '.....'],
-        ['.....',
          '.O...',
          '.OOO.',
          '.....',
@@ -143,6 +139,11 @@ SHAPES = [
          '.....',
          '.OOO.',
          '...O.',
+         '.....'],
+        ['.....',
+         '..O..',
+         '..O.',
+         '.OO..',
          '.....']
     ],
 ]

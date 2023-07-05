@@ -14,11 +14,13 @@ class App:
         self.running = False
         pg.init()
         pg.display.set_caption("Tetris")
+
         self.screen = pg.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
         self.grid = self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.score = 0
         self.next_pieces = [Tetromino(self) for _ in range(3)]
         self.moving_piece = Tetromino(self)
+        self.draw_grid_lines()
 
     def max_drop_height(self):
         max_drop_height = 0
@@ -54,13 +56,11 @@ class App:
                     self.moving_piece.rotation += delta_rotation
                     rotated = delta_rotation
                     break
-        self.draw_piece()
         if (rotated == 0 and not (self.move_is_possible(0, 1, 0)
                                   or self.move_is_possible(1, 0, 0)
                                   or self.move_is_possible(-1, 0, 0))) or hard_drop:
             self.fix_piece()  # TODO: edit this after timer implementation
-
-
+        self.draw_game()
 
     def hard_drop(self):
         self.move_piece(0, self.max_drop_height(), 0, True)
@@ -73,7 +73,18 @@ class App:
         self.clear_lines()
         self.moving_piece = self.next_pieces.pop(0)
         self.next_pieces.append(Tetromino(self))
-        self.draw_next_pieces()
+        # self.draw_next_pieces()
+
+    def draw_grid_lines(self):
+        self.grid_lines_surface = pg.Surface((GRID_PIXEL_WIDTH, GRID_PIXEL_HEIGHT))
+        self.grid_lines_surface.set_alpha(50)
+        for i in range(1, WIDTH+1):
+            pg.draw.line(self.grid_lines_surface, (255, 255, 255),
+                         (i * CELL_WIDTH, 0), (i * CELL_WIDTH, GRID_PIXEL_HEIGHT))
+        for i in range(1, HEIGHT):
+            pg.draw.line(self.grid_lines_surface, (255, 255, 255),
+                         (0, i * CELL_HEIGHT), (GRID_PIXEL_WIDTH, i * CELL_HEIGHT))
+        self.screen.blit(self.grid_lines_surface, (0, 0))
 
     def draw_next_pieces(self):
         # make other cells on the right of the grid black
@@ -92,6 +103,10 @@ class App:
                 self.score += 100  # TODO look official Tetris scoring system
                 del(self.grid[i])
                 self.grid.insert(0, [0 for _ in range(WIDTH)])
+        self.draw_grid_lines()
+        self.draw_grid_cells()
+
+    def draw_grid_cells(self):
         for k, updated_row in enumerate(self.grid):
             for num, cell in enumerate(updated_row):
                 if cell != 0:
@@ -99,13 +114,16 @@ class App:
                 else:
                     self.screen.fill(BLACK, cell_rect(num, k))
 
-    #  q: how do I make you suggest improvements on existing function?
-
-    def draw_piece(self):
+    def draw_game(self):
         for i, row in enumerate(self.grid):  # here a little ineffective may be
             for j, cell in enumerate(row):
                 if cell == 0:
                     self.screen.fill(BLACK, cell_rect(j, i))
+        self.draw_grid_lines()
+        for k, row in enumerate(self.grid):
+            for num, cell in enumerate(row):
+                if cell != 0:
+                    self.screen.fill(cell, cell_rect(num, k))
         for i, row in enumerate(self.moving_piece.rotated_shape()):
             for j, cell in enumerate(row):
                 try:
@@ -117,9 +135,6 @@ class App:
                         self.screen.fill(self.moving_piece.colour, cell_rect(cell_x, cell_y))
                 except IndexError:
                     pass
-
-    def draw_game(self):
-        self.draw_piece()
         pg.display.flip()
 
     def handle_inputs(self):
