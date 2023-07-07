@@ -1,21 +1,6 @@
 
 from constants import *
 
-listy = [1] + [2, 3]
-
-GREEN = (125, 179, 73)
-RED = (242, 26, 29)
-BLUE = (69, 42, 233)
-LIGHT_BLUE = (101, 197, 253)
-YELLOW = (255, 227, 4)
-PURPLE = (174, 56, 255)
-ORANGE = (255, 173, 0)
-BLACK = (0, 0, 0)
-
-COLOUR_LIST = [LIGHT_BLUE, YELLOW, PURPLE, GREEN, RED, ORANGE, BLUE]
-
-
-print(COLOUR_LIST_LIGHT)
 
 
 

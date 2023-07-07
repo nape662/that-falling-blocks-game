@@ -2,7 +2,6 @@ from tetromino import *
 from constants import *
 import pygame as pg
 
-
 # imports are already in constants.py
 
 def cell_rect(x, y):
@@ -14,6 +13,7 @@ class App:
         self.running = False
         pg.init()
         pg.display.set_caption("Tetris")
+        self.clock = pg.time.Clock()
 
         self.screen = pg.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
         self.grid = self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
@@ -24,6 +24,7 @@ class App:
         self.draw_grid_lines()
         self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
         self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT*14, WINDOW_WIDTH-GRID_PIXEL_WIDTH, WINDOW_HEIGHT-CELL_HEIGHT*14))
+        self.draw_next_pieces()
 
     def max_drop_height(self):
         max_drop_height = 0
@@ -46,24 +47,30 @@ class App:
         return True
 
     def move_piece(self, delta_x, delta_y, delta_rotation, hard_drop=False):
-        rotated = 0
+        rotated = False
+        moved = False
         if self.move_is_possible(delta_x, delta_y, delta_rotation):
             self.moving_piece.x += delta_x
             self.moving_piece.y += delta_y
             self.moving_piece.rotation += delta_rotation
             rotated = delta_rotation
+            moved = True
         elif delta_rotation != 0:
             for i in (1, -1, 2, -2):
                 if self.move_is_possible(i, 0, delta_rotation):
                     self.moving_piece.x += i
                     self.moving_piece.rotation += delta_rotation
                     rotated = delta_rotation
+                    moved = True
                     break
-        if (rotated == 0 and not (self.move_is_possible(0, 1, 0)
-                                  or self.move_is_possible(1, 0, 0)
-                                  or self.move_is_possible(-1, 0, 0))) or hard_drop:
-            self.fix_piece()  # TODO: edit this after timer implementation
-        self.draw_game()
+        if moved:
+            self.draw_game()
+            if hard_drop:
+                self.fix_piece()
+        if not self.move_is_possible(0, 1, 0):
+            pg.time.set_timer(FIX_PIECE_EVENT, FIX_PIECE_DELAY)
+        else:
+            pg.time.set_timer(FIX_PIECE_EVENT, 0)
 
     def hard_drop(self):
         self.move_piece(0, self.max_drop_height(), 0, True)
@@ -76,7 +83,7 @@ class App:
         self.clear_lines()
         self.moving_piece = self.next_pieces.pop(0)
         self.next_pieces.append(Tetromino(self, self.next_pieces[-1].shape_number))
-        # self.draw_next_pieces()
+        self.draw_next_pieces()
 
     def draw_grid_lines(self):
         self.grid_lines_surface = pg.Surface((GRID_PIXEL_WIDTH, GRID_PIXEL_HEIGHT))
@@ -135,7 +142,6 @@ class App:
                         self.screen.fill(self.moving_piece.colour, cell_rect(cell_x, cell_y))
                 except IndexError:
                     pass
-        self.draw_next_pieces()
         pg.display.flip()
 
     def handle_inputs(self):
@@ -153,15 +159,25 @@ class App:
                     self.move_piece(0, 0, 1)
                 elif event.key == pg.K_DOWN:
                     self.move_piece(0, 1, 0)
+                    pg.time.set_timer(QUICK_DROP_EVENT, SPEEDY_DROP_RATE)
                 elif event.key == pg.K_SPACE:
                     self.hard_drop()
-                self.draw_game()
+            elif event.type == pg.KEYUP:
+                if event.key == pg.K_DOWN:
+                    pg.time.set_timer(QUICK_DROP_EVENT, 0)
+            elif event.type == QUICK_DROP_EVENT or event.type == REGULAR_DROP_EVENT:
+                self.move_piece(0, 1, 0)
+            elif event.type == FIX_PIECE_EVENT:
+                self.fix_piece()
+                pg.time.set_timer(FIX_PIECE_EVENT, 0)
+        self.draw_game()
 
     def run(self):
         self.running = True
         self.draw_game()
+        pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
         while self.running:
-            pg.time.Clock().tick_busy_loop(FPS)
+            self.clock.tick_busy_loop(FPS)
             self.handle_inputs()
         return 0
 

@@ -2,6 +2,13 @@ import pygame as pg
 from random import randint, choice
 
 FPS = 60
+QUICK_DROP_EVENT = pg.event.custom_type()
+REGULAR_DROP_EVENT = pg.event.custom_type()
+FIX_PIECE_EVENT = pg.event.custom_type()
+SPEEDY_DROP_RATE = 100
+REGULAR_DROP_RATE = 500  # TODO: make this faster as the game progresses (shift this to App() class)
+FIX_PIECE_DELAY = 300
+
 
 WIDTH = 10
 HEIGHT = 20
