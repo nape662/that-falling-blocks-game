@@ -210,6 +210,8 @@ class App:
                         pg.time.set_timer(QUICK_DROP_EVENT, SPEEDY_DROP_RATE)
                     elif event.key == pg.K_SPACE:
                         self.hard_drop()
+                    elif event.key == pg.K_z or event.key == pg.K_y:  # on behalf of deutsches Tastatur-Layout
+                        self.move_piece(0, 0, -1)
                 elif event.type == pg.KEYUP:
                     if event.key == pg.K_DOWN:
                         pg.time.set_timer(QUICK_DROP_EVENT, 0)
