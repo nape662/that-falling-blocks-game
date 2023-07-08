@@ -9,6 +9,9 @@ def cell_rect(x, y):
     return CELL_WIDTH * x + GRID_TOP_LEFT_X, CELL_HEIGHT * y, CELL_WIDTH, CELL_HEIGHT
 
 
+# TODO: learn logging module
+# TODO: learn git add -i or -p
+
 class App:
     def __init__(self):
         self.running = False
