@@ -38,7 +38,7 @@ class App:
         self.moving_piece = Tetromino(self)
         self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
-        self.draw_next_pieces()
+        self.draw_game()
         pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
 
     def game_over(self):
@@ -114,9 +114,9 @@ class App:
         self.clear_lines()
         self.moving_piece = self.next_pieces.pop(0)
         self.next_pieces.append(Tetromino(self, self.next_pieces[-1].shape_number))
+        self.draw_game()
         if not self.move_is_possible(0, 0, 0):
             self.game_over()
-        self.draw_next_pieces()
 
     def draw_grid_lines(self):
         self.grid_lines_surface = pg.Surface((GRID_PIXEL_WIDTH, GRID_PIXEL_HEIGHT))
@@ -161,8 +161,7 @@ class App:
                 if cell != 0:
                     self.screen.fill(cell, cell_rect(num, k))
 
-    def draw_game(self):
-        self.draw_grid()
+    def draw_moving_piece(self):
         for i, row in enumerate(self.moving_piece.rotated_shape()):
             for j, cell in enumerate(row):
                 try:
@@ -174,16 +173,22 @@ class App:
                         self.screen.fill(self.moving_piece.colour, cell_rect(cell_x, cell_y))
                 except IndexError:
                     pass
+
+    def draw_score(self):
         score_font = pg.font.SysFont("Arial", 30)
         score_text = score_font.render("Score: " + str(self.score), True, BLACK)
         self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT * 14 + 10,
                                            WINDOW_WIDTH - GRID_PIXEL_WIDTH - CELL_WIDTH, WINDOW_HEIGHT - CELL_HEIGHT * 14))
         self.screen.blit(score_text, (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT * 14 + 10))
+
+    def draw_game(self):
+        self.draw_grid()
+        self.draw_moving_piece()
+        self.draw_score()
         pg.display.flip()
 
     def handle_inputs(self):
         if not self.paused:
-            self.draw_game()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.running = False
