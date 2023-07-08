@@ -6,7 +6,7 @@ import pygame as pg
 
 
 def cell_rect(x, y):
-    return CELL_WIDTH * x, CELL_HEIGHT * y, CELL_WIDTH, CELL_HEIGHT
+    return CELL_WIDTH * x + GRID_TOP_LEFT_X, CELL_HEIGHT * y, CELL_WIDTH, CELL_HEIGHT
 
 
 class App:
@@ -19,11 +19,19 @@ class App:
         # drawing stuff
         self.screen = pg.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
         self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
-        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
-        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT*14, WINDOW_WIDTH-GRID_PIXEL_WIDTH, WINDOW_HEIGHT-CELL_HEIGHT*14))
-        # self.reset_game()
+        # next lines are self.reset_game()
+        self.screen.fill((255, 255, 255), (GRID_TOP_LEFT_X - CELL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
+        self.screen.fill((255, 255, 255), (0, CELL_WIDTH * 3,
+                                           RIGHT_SIDE_WIDTH, WINDOW_HEIGHT - CELL_WIDTH * 3))
+        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH+GRID_TOP_LEFT_X, 0, CELL_WIDTH, WINDOW_HEIGHT))
+        self.screen.fill((255, 255, 255), (RIGHT_SIDE_X, NEXT_PIECES_HEIGHT,
+                                           RIGHT_SIDE_WIDTH, WINDOW_HEIGHT-NEXT_PIECES_HEIGHT))
+        self.grid_lines_surface = pg.Surface((GRID_PIXEL_WIDTH, GRID_PIXEL_HEIGHT))
+        self.grid_lines_surface.set_alpha(50)
         self.paused = False
         self.score = 0
+        self.saved_piece = None
+        self.already_switched = False
         self.moving_piece = Tetromino(self)
         self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
@@ -31,21 +39,20 @@ class App:
         pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
 
     def reset_game(self):
-        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
-        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT*14, WINDOW_WIDTH-GRID_PIXEL_WIDTH, WINDOW_HEIGHT-CELL_HEIGHT*14))
         self.paused = False
-        self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.score = 0
+        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
+        self.draw_score()
+        self.grid = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.moving_piece = Tetromino(self)
         self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
         self.draw_game()
-        pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
 
     def game_over(self):
         self.paused = True
-        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
-        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT*14, WINDOW_WIDTH-GRID_PIXEL_WIDTH, WINDOW_HEIGHT-CELL_HEIGHT*14))
+        self.already_switched = False
+        self.draw_score()
         self.draw_game()
         bold_font = pg.font.SysFont("Arial", 100)
         small_font = pg.font.SysFont("Arial", 50)
@@ -58,8 +65,21 @@ class App:
         pg.display.flip()
         # reset timers
         pg.time.set_timer(QUICK_DROP_EVENT, 0)
-        pg.time.set_timer(REGULAR_DROP_EVENT, 0)
         pg.time.set_timer(FIX_PIECE_EVENT, 0)
+
+    def switch_piece(self):
+        if not self.already_switched:
+            if self.saved_piece is None:  # reset in case of game over
+                self.saved_piece = Tetromino(self, needed_shape_number=self.moving_piece.shape_number)
+                self.moving_piece = self.next_pieces.pop(0)
+                self.next_pieces.append(Tetromino(self, self.next_pieces[-1].shape_number))
+            else:
+                self.moving_piece, self.saved_piece = self.saved_piece, self.moving_piece
+                self.saved_piece = Tetromino(self, needed_shape_number=self.saved_piece.shape_number)  # to reset x and y
+            self.already_switched = True
+            self.draw_game()
+        else:
+            pass
 
     def max_drop_height(self):
         max_drop_height = 0
@@ -117,34 +137,39 @@ class App:
         self.clear_lines()
         self.moving_piece = self.next_pieces.pop(0)
         self.next_pieces.append(Tetromino(self, self.next_pieces[-1].shape_number))
+        self.already_switched = False
         self.draw_game()
         if not self.move_is_possible(0, 0, 0):
             self.game_over()
 
     def draw_grid_lines(self):
-        self.grid_lines_surface = pg.Surface((GRID_PIXEL_WIDTH, GRID_PIXEL_HEIGHT))
-        self.grid_lines_surface.set_alpha(50)
         for i in range(1, WIDTH+1):
             pg.draw.line(self.grid_lines_surface, (255, 255, 255),
                          (i * CELL_WIDTH, 0), (i * CELL_WIDTH, GRID_PIXEL_HEIGHT))
         for i in range(1, HEIGHT):
             pg.draw.line(self.grid_lines_surface, (255, 255, 255),
                          (0, i * CELL_HEIGHT), (GRID_PIXEL_WIDTH, i * CELL_HEIGHT))
-        self.screen.blit(self.grid_lines_surface, (0, 0))
+        self.screen.blit(self.grid_lines_surface, (GRID_TOP_LEFT_X, 0))
 
     def draw_next_pieces(self):
-        self.screen.fill(BLACK, (GRID_PIXEL_WIDTH + CELL_WIDTH, 0, WINDOW_WIDTH - GRID_PIXEL_WIDTH - CELL_WIDTH, CELL_HEIGHT * 14))
+        self.screen.fill(BLACK, (RIGHT_SIDE_X, 0, RIGHT_SIDE_WIDTH, NEXT_PIECES_HEIGHT))
         for i, piece in enumerate(self.next_pieces):
-            if piece.shape_number == 0 or piece.shape_number == 1:
-                for j, row in enumerate(SHAPE_DISPLAYS[piece.shape_number]):
-                    for k, cell in enumerate(row):
-                        if cell == "O":
-                            self.screen.fill(piece.colour, cell_rect(11.5 + k, 2 + 4 * i + j))
-            else:
-                for j, row in enumerate(SHAPE_DISPLAYS[piece.shape_number]):
-                    for k, cell in enumerate(row):
-                        if cell == "O":
-                            self.screen.fill(piece.colour, cell_rect(11 + k, 2 + 4 * i + j))
+            little_x_shift = 0.5 if piece.shape_number == 0 or piece.shape_number == 1 else 0
+            little_y_shift = 0.5 if piece.shape_number == 0 else 0
+            for j, row in enumerate(SHAPE_DISPLAYS[piece.shape_number]):
+                for k, cell in enumerate(row):
+                    if cell == "O":
+                        self.screen.fill(piece.colour, cell_rect(11 + k + little_x_shift, 1 + 3 * i + j + little_y_shift))
+
+    def draw_saved_piece(self):
+        self.screen.fill(BLACK, (0, 0, RIGHT_SIDE_WIDTH, CELL_HEIGHT * 6))
+        if self.saved_piece is not None:
+            little_shift = 0.5 if self.saved_piece.shape_number == 0 or self.saved_piece.shape_number == 1 else 0
+            little_y_shift = 0.5 if self.saved_piece.shape_number == 0 else 0
+            for i, row in enumerate(SHAPE_DISPLAYS[self.saved_piece.shape_number]):
+                for j, cell in enumerate(row):
+                    if cell == "O":
+                        self.screen.fill(self.saved_piece.colour, cell_rect(j + little_shift - 6, 2 + i + little_y_shift))
 
     def clear_lines(self):
         for i, row in enumerate(self.grid):
@@ -180,15 +205,16 @@ class App:
     def draw_score(self):
         score_font = pg.font.SysFont("Arial", 30)
         score_text = score_font.render("Score: " + str(self.score), True, BLACK)
-        self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT * 14 + 10,
-                                           WINDOW_WIDTH - GRID_PIXEL_WIDTH - CELL_WIDTH, WINDOW_HEIGHT - CELL_HEIGHT * 14))
-        self.screen.blit(score_text, (GRID_PIXEL_WIDTH + CELL_WIDTH, CELL_HEIGHT * 14 + 10))
+        self.screen.fill((255, 255, 255), (RIGHT_SIDE_X, NEXT_PIECES_HEIGHT + 10,
+                                           RIGHT_SIDE_WIDTH, WINDOW_HEIGHT - NEXT_PIECES_HEIGHT))
+        self.screen.blit(score_text, (RIGHT_SIDE_X, NEXT_PIECES_HEIGHT + 10))
 
     def draw_game(self):
         self.draw_grid()
         self.draw_moving_piece()
         self.draw_score()
         self.draw_next_pieces()
+        self.draw_saved_piece()
         pg.display.flip()
 
     def handle_inputs(self):
@@ -212,6 +238,8 @@ class App:
                         self.hard_drop()
                     elif event.key == pg.K_z or event.key == pg.K_y:  # on behalf of deutsches Tastatur-Layout
                         self.move_piece(0, 0, -1)
+                    elif event.key == pg.K_c:
+                        self.switch_piece()
                 elif event.type == pg.KEYUP:
                     if event.key == pg.K_DOWN:
                         pg.time.set_timer(QUICK_DROP_EVENT, 0)
@@ -232,7 +260,6 @@ class App:
     def run(self):
         self.running = True
         self.draw_game()
-        pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
         while self.running:
             self.clock.tick_busy_loop(FPS)
             self.handle_inputs()
