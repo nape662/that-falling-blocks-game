@@ -4,6 +4,7 @@ import pygame as pg
 
 # imports are already in constants.py
 
+
 def cell_rect(x, y):
     return CELL_WIDTH * x, CELL_HEIGHT * y, CELL_WIDTH, CELL_HEIGHT
 
@@ -97,8 +98,9 @@ class App:
         if moved:
             self.draw_game()
             if hard_drop:
+                pg.time.set_timer(FIX_PIECE_EVENT, 0)
                 self.fix_piece()
-        if not self.move_is_possible(0, 1, 0):
+        if not self.move_is_possible(0, 1, 0) and not self.paused:
             pg.time.set_timer(FIX_PIECE_EVENT, FIX_PIECE_DELAY)
         else:
             pg.time.set_timer(FIX_PIECE_EVENT, 0)
@@ -107,6 +109,7 @@ class App:
         self.move_piece(0, self.max_drop_height(), 0, True)
 
     def fix_piece(self):
+        pg.time.set_timer(FIX_PIECE_EVENT, 0)
         for i, row in enumerate(self.moving_piece.rotated_shape()):
             for j, cell in enumerate(row):
                 if cell == "O":
@@ -151,7 +154,7 @@ class App:
                 self.grid.insert(0, [0 for _ in range(WIDTH)])
 
     def draw_grid(self):
-        for i, row in enumerate(self.grid):  # here a little ineffective may be
+        for i, row in enumerate(self.grid):
             for j, cell in enumerate(row):
                 if cell == 0:
                     self.screen.fill(BLACK, cell_rect(j, i))
@@ -185,6 +188,7 @@ class App:
         self.draw_grid()
         self.draw_moving_piece()
         self.draw_score()
+        self.draw_next_pieces()
         pg.display.flip()
 
     def handle_inputs(self):
@@ -213,14 +217,13 @@ class App:
                     self.move_piece(0, 1, 0)
                 elif event.type == FIX_PIECE_EVENT:
                     self.fix_piece()
-                    pg.time.set_timer(FIX_PIECE_EVENT, 0)
         else:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.running = False
                     break
                 elif event.type == pg.KEYDOWN:
-                    if event.key == pg.K_SPACE:
+                    if event.key == pg.K_RETURN:
                         self.reset_game()
                         self.draw_game()
 
