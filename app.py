@@ -27,6 +27,7 @@ class App:
         self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
         self.draw_next_pieces()
+        pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
 
     def reset_game(self):
         self.screen.fill((255, 255, 255), (GRID_PIXEL_WIDTH, 0, CELL_WIDTH, WINDOW_HEIGHT))
@@ -38,6 +39,7 @@ class App:
         self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
         self.draw_next_pieces()
+        pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
 
     def game_over(self):
         self.paused = True
@@ -130,10 +132,16 @@ class App:
     def draw_next_pieces(self):
         self.screen.fill(BLACK, (GRID_PIXEL_WIDTH + CELL_WIDTH, 0, WINDOW_WIDTH - GRID_PIXEL_WIDTH - CELL_WIDTH, CELL_HEIGHT * 14))
         for i, piece in enumerate(self.next_pieces):
-            for j, row in enumerate(SHAPE_DISPLAYS[piece.shape_number]):
-                for k, cell in enumerate(row):
-                    if cell == "O":
-                        self.screen.fill(piece.colour, cell_rect(11 + k, 2 + 4 * i + j))
+            if piece.shape_number == 0 or piece.shape_number == 1:
+                for j, row in enumerate(SHAPE_DISPLAYS[piece.shape_number]):
+                    for k, cell in enumerate(row):
+                        if cell == "O":
+                            self.screen.fill(piece.colour, cell_rect(11.5 + k, 2 + 4 * i + j))
+            else:
+                for j, row in enumerate(SHAPE_DISPLAYS[piece.shape_number]):
+                    for k, cell in enumerate(row):
+                        if cell == "O":
+                            self.screen.fill(piece.colour, cell_rect(11 + k, 2 + 4 * i + j))
 
     def clear_lines(self):
         for i, row in enumerate(self.grid):
@@ -141,18 +149,8 @@ class App:
                 self.score += 100  # TODO look official Tetris scoring system
                 del(self.grid[i])
                 self.grid.insert(0, [0 for _ in range(WIDTH)])
-        self.draw_grid_lines()
-        self.draw_grid_cells()
 
-    def draw_grid_cells(self):
-        for k, updated_row in enumerate(self.grid):
-            for num, cell in enumerate(updated_row):
-                if cell != 0:
-                    self.screen.fill(cell, cell_rect(num, k))
-                else:
-                    self.screen.fill(BLACK, cell_rect(num, k))
-
-    def draw_game(self):
+    def draw_grid(self):
         for i, row in enumerate(self.grid):  # here a little ineffective may be
             for j, cell in enumerate(row):
                 if cell == 0:
@@ -162,6 +160,9 @@ class App:
             for num, cell in enumerate(row):
                 if cell != 0:
                     self.screen.fill(cell, cell_rect(num, k))
+
+    def draw_game(self):
+        self.draw_grid()
         for i, row in enumerate(self.moving_piece.rotated_shape()):
             for j, cell in enumerate(row):
                 try:
@@ -216,7 +217,6 @@ class App:
                 elif event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
                         self.reset_game()
-                        self.paused = False
                         self.draw_game()
 
     def run(self):
