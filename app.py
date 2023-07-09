@@ -123,8 +123,8 @@ class App:
                 moved = True
         if moved:
             self.draw_game()
+            pg.time.set_timer(FIX_PIECE_EVENT, 0)
             if hard_drop:
-                pg.time.set_timer(FIX_PIECE_EVENT, 0)
                 self.fix_piece()
         if not self.move_is_possible(0, 1, 0) and not self.paused:
             pg.time.set_timer(FIX_PIECE_EVENT, FIX_PIECE_DELAY)
