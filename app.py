@@ -31,7 +31,8 @@ class App:
                                            RIGHT_SIDE_WIDTH, WINDOW_HEIGHT-NEXT_PIECES_HEIGHT))
         self.grid_lines_surface = pg.Surface((GRID_PIXEL_WIDTH, GRID_PIXEL_HEIGHT))
         self.grid_lines_surface.set_alpha(50)
-        self.paused = False
+        # reset game
+        self.level = 1
         self.score = 0
         self.saved_piece = None
         self.already_switched = False
@@ -106,18 +107,20 @@ class App:
 
     def move_piece(self, delta_x, delta_y, delta_rotation, hard_drop=False):
         moved = False
-        if self.move_is_possible(delta_x, delta_y, delta_rotation):
-            self.moving_piece.x += delta_x
-            self.moving_piece.y += delta_y
-            self.moving_piece.rotation += delta_rotation
-            moved = True
-        elif delta_rotation != 0:
-            for i in (1, -1, 2, -2):
-                if self.move_is_possible(i, 0, delta_rotation):
-                    self.moving_piece.x += i
-                    self.moving_piece.rotation += delta_rotation
+        if delta_rotation != 0:
+            attempted_wall_kicks = WALL_KICKS["I" if self.moving_piece.shape_number == 0 else "OTHER"]
+            for dx, dy in attempted_wall_kicks[self.moving_piece.rotation][0 if delta_rotation == -1 else 1]:  # we're not expecting 0 or 2 anyway
+                if self.move_is_possible(dx, dy, delta_rotation):
+                    self.moving_piece.x += dx
+                    self.moving_piece.y += dy
+                    self.moving_piece.rotation = (self.moving_piece.rotation + delta_rotation) % 4
                     moved = True
                     break
+        else:
+            if self.move_is_possible(delta_x, delta_y, 0):
+                self.moving_piece.x += delta_x
+                self.moving_piece.y += delta_y
+                moved = True
         if moved:
             self.draw_game()
             if hard_drop:
