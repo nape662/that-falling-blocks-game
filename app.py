@@ -34,13 +34,19 @@ class App:
         # reset game
         self.level = 1
         self.score = 0
+        self.combo = 0
+        self.lines_cleared = 0
+        self.t_spin = False
+        self.mini_t_spin = False
+        self.difficult_move = 1
+        self.fall_rate = REGULAR_DROP_RATE
         self.saved_piece = None
         self.already_switched = False
         self.moving_piece = Tetromino(self)
         self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
         self.draw_next_pieces()
-        pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATE)
+        pg.time.set_timer(REGULAR_DROP_EVENT, self.fall_rate)
 
     def reset_game(self):
         self.paused = False
@@ -122,6 +128,7 @@ class App:
                 self.moving_piece.y += delta_y
                 moved = True
         if moved:
+            self.detect_t_spin(delta_rotation)
             self.draw_game()
             pg.time.set_timer(FIX_PIECE_EVENT, 0)
             if hard_drop:
@@ -131,10 +138,32 @@ class App:
         else:
             pg.time.set_timer(FIX_PIECE_EVENT, 0)
 
+    def detect_t_spin(self, delta_rotation):
+        if self.moving_piece.shape_number == 3 and delta_rotation != 0:
+            filled_corners = 0
+            corners = [(0, 0), (2, 0), (2, 2), (0, 2)]
+            facing_corners = [corners[self.moving_piece.rotation], corners[(self.moving_piece.rotation + 1) % 4]]
+            other_corners = [corners[(self.moving_piece.rotation + 2) % 4],
+                             corners[(self.moving_piece.rotation + 3) % 4]]
+            for i in facing_corners:
+                if self.grid[self.moving_piece.y + i[1]][self.moving_piece.x + i[0]] != 0:
+                    filled_corners += 1
+            if filled_corners >= 3:
+                if all((self.grid[self.moving_piece.y + i[1]][self.moving_piece.x + i[0]] != 0) \
+                       for i in facing_corners):
+                    self.score += 400 * self.level
+                    self.t_spin = True
+                else:
+                    self.score += 100 * self.level
+                    self.mini_t_spin = True
+
     def hard_drop(self):
         self.move_piece(0, self.max_drop_height(), 0, True)
 
     def fix_piece(self):
+        self.t_spin = False
+        self.mini_t_spin = False
+        self.already_switched = False
         pg.time.set_timer(FIX_PIECE_EVENT, 0)
         for i, row in enumerate(self.moving_piece.rotated_shape()):
             for j, cell in enumerate(row):
@@ -143,7 +172,6 @@ class App:
         self.clear_lines()
         self.moving_piece = self.next_pieces.pop(0)
         self.next_pieces.append(Tetromino(self, self.next_pieces[-1].shape_number))
-        self.already_switched = False
         self.draw_game()
         if not self.move_is_possible(0, 0, 0):
             self.game_over()
@@ -178,11 +206,46 @@ class App:
                         self.screen.fill(self.saved_piece.colour, cell_rect(j + little_shift - 6, 2 + i + little_y_shift))
 
     def clear_lines(self):
+        # Single	100 × level
+        # Double	300 × level
+        # Triple	500 × level
+        # Tetris	800 × level; difficult
+        # Combo	50 × combo count × level
+        # Soft drop	1 per cell
+        # Hard drop	2 per cell
+        cleared_lines = 0
+        clear_line_scores = [0, 100, 300, 500, 800]
         for i, row in enumerate(self.grid):
             if all(cell != 0 for cell in row):
-                self.score += 100  # TODO look official Tetris scoring system
+                cleared_lines += 1
                 del(self.grid[i])
                 self.grid.insert(0, [0 for _ in range(WIDTH)])
+        if cleared_lines > 0:
+            self.lines_cleared += cleared_lines
+            if self.t_spin:
+                if cleared_lines == 1:
+                    self.score += 400 * self.level * self.difficult_move
+                elif cleared_lines == 2:
+                    self.score += 800 * self.level * self.difficult_move
+                elif cleared_lines == 3:
+                    self.score += 1200 * self.level * self.difficult_move1
+                self.difficult_move = 1.5
+            elif self.mini_t_spin:
+                self.score += 100 * cleared_lines * self.level * self.difficult_move
+                self.difficult_move = 1.5
+            else:
+                self.score += clear_line_scores[cleared_lines] * self.level * self.difficult_move
+                if self.lines_cleared == 4:
+                    self.difficult_move = 1.5
+                else:
+                    self.difficult_move = 1
+            self.combo += 1
+            self.score += 50 * self.combo * self.level
+            if self.lines_cleared >= self.level * LINES_FOR_LEVELUP and self.level <= 15:
+                self.level += 1
+                self.fall_rate -= 50
+        elif not self.t_spin or not self.mini_t_spin:
+            self.combo = -1
 
     def draw_grid(self):
         for i, row in enumerate(self.grid):

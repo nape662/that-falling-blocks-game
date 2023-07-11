@@ -6,8 +6,9 @@ QUICK_DROP_EVENT = pg.event.custom_type()
 REGULAR_DROP_EVENT = pg.event.custom_type()
 FIX_PIECE_EVENT = pg.event.custom_type()
 SPEEDY_DROP_RATE = 100
-REGULAR_DROP_RATE = 5000  # TODO: make this faster as the game progresses (shift this to App() class)
+REGULAR_DROP_RATE = 1000  # TODO: make this faster as the game progresses (shift this to App() class)
 FIX_PIECE_DELAY = 500
+LINES_FOR_LEVELUP = 4
 
 WIDTH = 10
 HEIGHT = 20
@@ -63,8 +64,9 @@ SHAPES = [
          ]
     ],
     [
-        ['.O.',
-         'OOO'],
+        ['.O.', #0 up
+         'OOO',
+         '...'],
         ['.O.',
          '.OO',
          '.O.'],
