@@ -11,11 +11,18 @@ class Tetromino:
         self.rotation = 0
         self.shape = SHAPES[self.shape_number]
         self.colour = COLOUR_LIST[self.shape_number]
-        self.x = WIDTH // 2 - 2
-        self.y = -1
+        # so if width is 3 then x should be 3
+        # and if width is 4 then x should also be 3
+        # but if width is 2 then x should be 4
+        self.x = WIDTH // 2 - (len(self.shape[self.rotation][0]) + 1) // 2
+        if self.shape_number == 0:
+            print(self.x)
+        self.y = 0
 
     def rotated_shape(self, delta_rotation=0):
         return self.shape[(self.rotation + delta_rotation) % len(self.shape)]
+
+
 
 
 
