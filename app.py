@@ -47,10 +47,9 @@ class App:
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
         self.draw_next_pieces()
         pg.time.set_timer(REGULAR_DROP_EVENT, self.fall_rate)
-        #make tetris.mp3 play in the background
-        #pg.mixer.init(channels=1)
-        #pg.mixer.music.load("tetris_loop.mp3")
-        #pg.mixer.music.play(loops=-1)
+        pg.mixer.init(channels=1)
+        pg.mixer.music.load("tetris_loop.mp3")
+        pg.mixer.music.play(loops=-1)
 
     def reset_game(self):
         self.paused = False
