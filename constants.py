@@ -6,9 +6,11 @@ QUICK_DROP_EVENT = pg.event.custom_type()
 REGULAR_DROP_EVENT = pg.event.custom_type()
 FIX_PIECE_EVENT = pg.event.custom_type()
 SPEEDY_DROP_RATE = 100
-REGULAR_DROP_RATE = 1000  # TODO: make this faster as the game progresses (shift this to App() class)
+REGULAR_DROP_RATES = [999, 793, 618, 472, 355, 262, 189, 134, 94, 64, 42, 28, 18, 11, 7]
 FIX_PIECE_DELAY = 500
-LINES_FOR_LEVELUP = 4
+FIX_PIECE_DELAY_STEP = 30
+LINES_FOR_LEVELUP = 1
+
 
 WIDTH = 10
 HEIGHT = 20
