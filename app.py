@@ -62,7 +62,10 @@ class App:
         self.moving_piece = Tetromino(self)
         self.next_pieces = [Tetromino(self, self.moving_piece.shape_number)]
         self.next_pieces += [Tetromino(self, self.next_pieces[i - 1].shape_number) for i in range(2)]
+        pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATES[self.level] - 1)
         self.draw_game()
+        # start music anew
+        pg.mixer.music.play(loops=-1)
 
     def game_over(self):
         self.paused = True
@@ -81,6 +84,8 @@ class App:
         # reset timers
         pg.time.set_timer(QUICK_DROP_EVENT, 0)
         pg.time.set_timer(FIX_PIECE_EVENT, 0)
+        # reset music
+        pg.mixer.music.stop()
 
     def switch_piece(self):
         if not self.already_switched:
@@ -249,6 +254,7 @@ class App:
                 if self.remaining_lines == 0:
                     self.level += 1
                     self.remaining_lines = LINES_FOR_LEVELUP * self.level
+                    pg.time.set_timer(REGULAR_DROP_EVENT, REGULAR_DROP_RATES[self.level]-1)
         elif not self.t_spin or not self.mini_t_spin:
             self.combo = -1
 
